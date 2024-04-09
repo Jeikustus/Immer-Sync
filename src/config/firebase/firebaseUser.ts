@@ -34,7 +34,7 @@ export const checkAccountType = async (userId: string): Promise<string | null> =
     const querySnapshot = await getDocs(q);
 
     if (querySnapshot.empty) {
-      return null; // User not found
+      return null; 
     }
 
     const userData = querySnapshot.docs[0].data() as UserData;

@@ -17,13 +17,14 @@ import { auth, db, googleProvider } from "./firebaseConfig";
 interface UserData {
   uid: string;
   name: string;
+  gradeLevel: string;
   email: string;
   authProvider: string;
   accountType: string;
 }
 
 // Function to create a user with email and password and save user data to Firestore
-export const createUserWithEmailAndPassword = async (email: string, password: string, name: string, accountType: string) => {
+export const createUserWithEmailAndPassword = async (email: string, password: string, name: string, gradeLevel: string, accountType: string) => {
   try {
     const userCredential = await createUserWithEmailAndPasswordFirebase(auth, email, password);
     const { uid } = userCredential.user;
@@ -31,9 +32,10 @@ export const createUserWithEmailAndPassword = async (email: string, password: st
     const userData: UserData = {
       uid,
       name,
+      gradeLevel,
       email,
       authProvider: "local",
-      accountType,
+      accountType: "pending" ,
     };
 
     await addDoc(collection(db, "users"), userData);

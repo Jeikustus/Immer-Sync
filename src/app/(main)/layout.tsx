@@ -1,3 +1,5 @@
+import { NavigationBar } from "./navigation";
+
 type Props = {
   children: React.ReactNode;
 };
@@ -5,7 +7,8 @@ type Props = {
 const MainLayout = ({ children }: Props) => {
   return (
     <>
-      <main className="h-screen bg-gradient-to-br from-green-400 via-emerald-600 to-emerald-900">
+      <NavigationBar />
+      <main className="h-screen bg-gradient-to-br from-[#2b4032] via-[#2b4032] to-[#2b4032]/90">
         <div className="mx-auto h-full">{children}</div>
       </main>
     </>
