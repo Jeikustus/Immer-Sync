@@ -46,13 +46,13 @@ export const NavigationBar = () => {
           </div>
           <div className="flex justify-center items-center hover:bg-white hover:text-black hover:rounded-md">
             <BellRing />
-            <Link href={"/notifcation"}>
+            <Link href={"/notification"}>
               <Button variant={"ghost"}>Notification</Button>
             </Link>
           </div>
           <div className="flex justify-center items-center hover:bg-white hover:text-black hover:rounded-md">
             <Mail />
-            <Link href={"/messages"}>
+            <Link href={"/chat"}>
               <Button variant={"ghost"}>Messages</Button>
             </Link>
           </div>
