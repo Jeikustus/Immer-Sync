@@ -15,6 +15,7 @@ import {
   doc,
 } from "firebase/firestore";
 import { db } from "@/config";
+import { CircleUserRound, CircleX, Send } from "lucide-react";
 
 interface Message {
   text: string;
@@ -29,12 +30,14 @@ const ChatBox: React.FC<{
   searchedUserId: string;
   onClose: () => void;
   recipientUserId: string;
+  recipientUserName: string;
 }> = ({
   currentUserName,
   currentUserId,
   searchedUserId,
   onClose,
   recipientUserId,
+  recipientUserName,
 }) => {
   const [chatRoomId, setChatRoomId] = useState<string | null>(null);
   const [chatHistory, setChatHistory] = useState<Message[]>([]);
@@ -126,15 +129,39 @@ const ChatBox: React.FC<{
 
   return (
     <div className="fixed bottom-0 right-0 m-4 w-96 bg-white border border-gray-300 rounded-lg shadow-md">
+      {/* Header Section */}
+      <div className="flex items-center justify-between px-4 py-2 border-b border-gray-300">
+        <div className="flex items-center space-x-2">
+          <CircleUserRound className="w-6 h-6 text-blue-500" />
+          <p className="text-lg font-semibold">{recipientUserName}</p>
+        </div>
+        <button onClick={handleCloseChat}>
+          <CircleX className="w-6 h-6 text-gray-500 hover:text-gray-700" />
+        </button>
+      </div>
       <div className="h-64 overflow-y-auto px-4 py-2">
         {chatHistory.map((message, index) => (
           <div
             key={index}
-            className={
-              message.senderId === currentUserId ? "text-right mb-2" : "mb-2"
-            }
+            className={`flex flex-col ${
+              message.senderId === currentUserId ? "items-end" : "items-start"
+            } mb-2`}
           >
-            <p className="inline-block bg-gray-200 px-2 py-1 rounded-lg">
+            {message.senderId === currentUserId && (
+              <p className="text-[10px] text-gray-500">You</p>
+            )}
+            {message.senderId !== currentUserId && (
+              <p className="text-[10px] text-gray-500">
+                {recipientUserName || "Unknown"}
+              </p>
+            )}
+            <p
+              className={`inline-block px-3 py-1 rounded-lg text-sm ${
+                message.senderId === currentUserId
+                  ? "bg-blue-500 text-white"
+                  : "bg-gray-200 text-gray-700"
+              }`}
+            >
               {message.text}
             </p>
           </div>
@@ -146,19 +173,13 @@ const ChatBox: React.FC<{
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
           placeholder="Type a message..."
-          className="flex-grow border border-gray-300 rounded-lg px-2 py-1 mr-2"
+          className="flex-grow border border-gray-300 rounded-lg px-3 py-1 mr-2 focus:outline-none focus:ring focus:border-blue-500"
         />
         <button
           onClick={handleSendMessage}
-          className="bg-blue-500 text-white px-4 py-1 rounded-lg hover:bg-blue-600"
+          className="bg-blue-500 text-white px-4 py-1 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring focus:border-blue-500"
         >
-          Send Message
-        </button>
-        <button
-          onClick={handleCloseChat}
-          className="bg-gray-300 text-gray-800 ml-2 px-4 py-1 rounded-lg hover:bg-gray-400"
-        >
-          Close
+          Send
         </button>
       </div>
     </div>

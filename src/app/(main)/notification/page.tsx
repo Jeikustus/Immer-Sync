@@ -6,11 +6,12 @@ import {
   query,
   getDocs,
   DocumentData,
-  getDoc,
+  deleteDoc,
   doc,
 } from "firebase/firestore";
 import { db, auth } from "@/config";
 import { Button } from "@/components/ui/button";
+import { BellRing, CircleX } from "lucide-react";
 
 interface Notification {
   id: string;
@@ -61,20 +62,53 @@ const NotificationPage: React.FC = () => {
     }
   };
 
+  const deleteNotification = async (id: string) => {
+    try {
+      const currentUser = auth.currentUser;
+      if (currentUser) {
+        await deleteDoc(
+          doc(db, "notifications", currentUser.uid, "messages", id)
+        );
+        setNotifications((prevNotifications) =>
+          prevNotifications.filter((notification) => notification.id !== id)
+        );
+      } else {
+        console.error("Current user not found");
+      }
+    } catch (error) {
+      console.error("Error deleting notification:", error);
+    }
+  };
+
   return (
-    <div className="text-gray-300">
-      <h1 className="text-2xl font-bold mb-4">Notifications</h1>
-      <ul>
+    <div className="flex justify-center items-center p-10">
+      <div className="grid grid-cols-5 gap-5 grid-rows-9">
         {notifications.map((notification) => (
-          <li key={notification.id} className="mb-4">
-            <p className="text-lg font-semibold">{notification.text}</p>
-            <p>Sent by: {notification.senderName}</p>{" "}
-            <p className="text-sm">
-              Created at: {notification.createdAt.toDate().toLocaleString()}
-            </p>
-          </li>
+          <div
+            key={notification.id}
+            className="flex items-center w-full max-w-xs p-4 text-gray-500 bg-white rounded-lg shadow"
+            role="alert"
+          >
+            <div className="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-blue-500 bg-blue-100 rounded-lg">
+              <BellRing />
+            </div>
+            <div className="ms-3">
+              <div className="text-md font-bold">{notification.senderName}</div>
+              <div className="text-sm">
+                <em>{notification.text}</em>
+              </div>
+            </div>
+            <button
+              onClick={() => deleteNotification(notification.id)}
+              type="button"
+              className="ms-auto -mx-1.5 -my-1.5 bg-white text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex items-center justify-center h-8 w-8"
+              aria-label="Close"
+            >
+              <CircleX />
+            </button>
+          </div>
         ))}
-      </ul>
+      </div>
     </div>
   );
 };

@@ -126,6 +126,7 @@ const ChatPage: React.FC = () => {
               searchedUserId={searchedUser.uid}
               onClose={handleCloseModal}
               recipientUserId={recipientUserId}
+              recipientUserName={searchedUser.name}
             />
           </div>
         )}
