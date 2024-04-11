@@ -22,18 +22,21 @@ interface UserData {
 // Function to create a user with email and password and save user data to Firestore
 export const createUserWithEmailAndPassword = async (email: string, password: string, name: string, gradeLevel: string, accountType: string) => {
   try {
+    // Create user in Firebase Authentication
     const userCredential = await createUserWithEmailAndPasswordFirebase(auth, email, password);
     const { uid } = userCredential.user;
 
+    // Create user data for Firestore
     const userData: UserData = {
       uid,
       name,
       gradeLevel,
       email,
       authProvider: "local",
-      accountType: "pending" ,
+      accountType: "pending",
     };
 
+    // Add user data to Firestore
     await addDoc(collection(db, "users"), userData);
 
     return userCredential.user;

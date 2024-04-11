@@ -23,20 +23,20 @@ const RegisterPage = () => {
     }
 
     try {
-      const userData = {
-        name: fullName,
-        gradeLevel,
+      // Create user with email and password in Firebase Authentication
+      await createUserWithEmailAndPassword(
         email,
-        authProvider: "local",
-        accountType: "pending",
-      };
+        password,
+        fullName,
+        gradeLevel,
+        "pending"
+      );
 
-      await addDoc(collection(db, "users"), userData);
-
-      alert("User registered successfully:");
-      window.location.href = "/";
+      // Redirect the user after successful registration
+      alert("User registered successfully.");
+      window.location.href = "/"; // Redirect to the home page
     } catch (error) {
-      setError((error as Error).message);
+      setError((error as Error).message); // Set error message if registration fails
     }
   };
 
