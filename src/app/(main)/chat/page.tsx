@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { db, auth } from "@/config";
 import { Input } from "@/components/ui/input";
@@ -18,6 +18,12 @@ interface User {
   accountType: string;
   displayName: string;
 }
+interface UserData {
+  name: string;
+  email: string;
+  accountType: string;
+  gradeLevel: string;
+}
 
 const ChatPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -26,6 +32,8 @@ const ChatPage: React.FC = () => {
   const [showChatBox, setShowChatBox] = useState<boolean>(false);
   const [user] = useAuthState(auth);
   const [recipientUserId, setRecipientUserId] = useState<string>("");
+  const [userData, setUserData] = useState<UserData | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
   const handleSearch = async (): Promise<void> => {
     try {
@@ -46,6 +54,37 @@ const ChatPage: React.FC = () => {
       console.error("Error searching for user:", error);
     }
   };
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const loggedInUserEmail = `${user ? user.email : null}`;
+
+        if (loggedInUserEmail) {
+          const usersCollection = collection(db, "users");
+          const q = query(
+            usersCollection,
+            where("email", "==", loggedInUserEmail)
+          );
+          const querySnapshot = await getDocs(q);
+
+          if (!querySnapshot.empty) {
+            const userData = querySnapshot.docs[0].data() as UserData;
+            setUserData(userData);
+          } else {
+            console.warn("No user found with the provided email");
+          }
+        }
+
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, [user]);
 
   const handleMessage = (recipientId: string): void => {
     setRecipientUserId(recipientId);
@@ -80,7 +119,9 @@ const ChatPage: React.FC = () => {
         {showChatBox && searchedUser && (
           <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center bg-gray-700 bg-opacity-50">
             <ChatBox
-              currentUserName={searchedUser.name}
+              currentUserName={
+                loading ? "Loading..." : userData?.name || "No Name"
+              }
               currentUserId={user ? user.uid : null}
               searchedUserId={searchedUser.uid}
               onClose={handleCloseModal}
