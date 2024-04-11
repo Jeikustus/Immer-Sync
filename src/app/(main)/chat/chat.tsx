@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import {
   collection,
   query,
@@ -11,20 +11,31 @@ import {
   setDoc,
   where,
   getDocs,
+  getDoc,
+  doc,
 } from "firebase/firestore";
 import { db } from "@/config";
 
 interface Message {
   text: string;
   senderId: string;
+  senderName: string;
   createdAt: Date;
 }
 
 const ChatBox: React.FC<{
-  currentUserId: string;
+  currentUserName: string | null;
+  currentUserId: string | null;
   searchedUserId: string;
   onClose: () => void;
-}> = ({ currentUserId, searchedUserId, onClose }) => {
+  recipientUserId: string;
+}> = ({
+  currentUserName,
+  currentUserId,
+  searchedUserId,
+  onClose,
+  recipientUserId,
+}) => {
   const [chatRoomId, setChatRoomId] = useState<string | null>(null);
   const [chatHistory, setChatHistory] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState<string>("");
@@ -34,7 +45,7 @@ const ChatBox: React.FC<{
       if (!chatRoomId) return;
 
       const q = query(
-        collection(db, "chats", chatRoomId, "messages"), // Adjusted query to directly target the messages subcollection
+        collection(db, "chats", chatRoomId, "messages"),
         orderBy("createdAt")
       );
 
@@ -56,12 +67,11 @@ const ChatBox: React.FC<{
     const checkChatRoom = async () => {
       const existingChatQuery = query(
         collection(db, "chats"),
-        where("participants", "array-contains", currentUserId) // Use a single where clause for array-contains
+        where("participants", "array-contains", currentUserId)
       );
 
       const existingChatSnapshot = await getDocs(existingChatQuery);
       if (!existingChatSnapshot.empty) {
-        // Iterate through existing chats to find the matching one
         existingChatSnapshot.forEach((chatDoc) => {
           const participants = chatDoc.data().participants as string[];
           if (participants.includes(searchedUserId)) {
@@ -69,11 +79,9 @@ const ChatBox: React.FC<{
           }
         });
       } else {
-        // If no matching chat room found, create a new one
-        const newChatRef = firestoreDoc(collection(db, "chats")); // Generate a new document reference within the "chats" collection
-        await setDoc(newChatRef, {}); // Create the document without setting data
-        setChatRoomId(newChatRef.id); // Obtain the ID from the document reference
-        // Now set the document data with the obtained ID
+        const newChatRef = firestoreDoc(collection(db, "chats"));
+        await setDoc(newChatRef, {});
+        setChatRoomId(newChatRef.id);
         await setDoc(newChatRef, {
           participants: [currentUserId, searchedUserId],
           createdAt: new Date(),
@@ -85,13 +93,27 @@ const ChatBox: React.FC<{
   }, [currentUserId, searchedUserId]);
 
   const handleSendMessage = async () => {
-    if (!chatRoomId) return;
+    if (!chatRoomId || !currentUserId) return;
 
+    // Add message to the chat messages collection
     const chatRef = collection(db, "chats", chatRoomId, "messages");
-
     await addDoc(chatRef, {
       text: newMessage,
       senderId: currentUserId,
+      senderName: currentUserName,
+      createdAt: new Date(),
+    });
+
+    // Add message to the recipient's notification collection
+    const notificationRef = collection(
+      db,
+      "notifications",
+      recipientUserId,
+      "messages"
+    );
+    await addDoc(notificationRef, {
+      text: newMessage,
+      senderName: currentUserName,
       createdAt: new Date(),
     });
 
@@ -130,7 +152,7 @@ const ChatBox: React.FC<{
           onClick={handleSendMessage}
           className="bg-blue-500 text-white px-4 py-1 rounded-lg hover:bg-blue-600"
         >
-          Send
+          Send Message
         </button>
         <button
           onClick={handleCloseChat}

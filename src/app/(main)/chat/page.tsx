@@ -16,6 +16,7 @@ interface User {
   name: string;
   email: string;
   accountType: string;
+  displayName: string;
 }
 
 const ChatPage: React.FC = () => {
@@ -24,6 +25,7 @@ const ChatPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [showChatBox, setShowChatBox] = useState<boolean>(false);
   const [user] = useAuthState(auth);
+  const [recipientUserId, setRecipientUserId] = useState<string>("");
 
   const handleSearch = async (): Promise<void> => {
     try {
@@ -45,7 +47,8 @@ const ChatPage: React.FC = () => {
     }
   };
 
-  const handleMessage = (): void => {
+  const handleMessage = (recipientId: string): void => {
+    setRecipientUserId(recipientId);
     setShowChatBox(true);
     setIsModalOpen(false);
   };
@@ -77,12 +80,15 @@ const ChatPage: React.FC = () => {
         {showChatBox && searchedUser && (
           <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center bg-gray-700 bg-opacity-50">
             <ChatBox
-              currentUserId={user ? user.uid : ""} // Pass the user ID instead of email
-              searchedUserId={searchedUser.uid} // Use user ID instead of email
+              currentUserName={searchedUser.name}
+              currentUserId={user ? user.uid : null}
+              searchedUserId={searchedUser.uid}
               onClose={handleCloseModal}
+              recipientUserId={recipientUserId}
             />
           </div>
         )}
+
         {isModalOpen && searchedUser && (
           <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center bg-gray-700 bg-opacity-50">
             <div className="bg-white p-4 rounded-lg shadow-md">
@@ -94,7 +100,7 @@ const ChatPage: React.FC = () => {
               <p>Account Type: {searchedUser.accountType}</p>
               <div className="mt-4 flex justify-end">
                 <Button
-                  onClick={handleMessage}
+                  onClick={() => handleMessage(searchedUser.uid)}
                   className="bg-blue-500 hover:bg-blue-600 text-white mr-2"
                 >
                   Message
