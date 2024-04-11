@@ -1,65 +1,100 @@
+"use client";
+
 import { useEffect, useState } from "react";
 import {
   collection,
   query,
-  where,
   orderBy,
   onSnapshot,
   addDoc,
+  doc as firestoreDoc,
+  setDoc,
+  where,
+  getDocs,
 } from "firebase/firestore";
 import { db } from "@/config";
 
 interface Message {
   text: string;
-  senderEmail: string; // Change senderId to senderEmail
+  senderId: string;
   createdAt: Date;
 }
 
 const ChatBox: React.FC<{
-  currentUserEmail: string; // Change currentUserUid to currentUserEmail
-  searchedUserEmail: string; // Change searchedUserUid to searchedUserEmail
+  currentUserId: string;
+  searchedUserId: string;
   onClose: () => void;
-}> = ({ currentUserEmail, searchedUserEmail, onClose }) => {
+}> = ({ currentUserId, searchedUserId, onClose }) => {
+  const [chatRoomId, setChatRoomId] = useState<string | null>(null);
   const [chatHistory, setChatHistory] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState<string>("");
 
   useEffect(() => {
     const fetchChatHistory = async () => {
-      const chatRoomId = generateChatRoomId(
-        currentUserEmail,
-        searchedUserEmail
-      ); // Update to use email
+      if (!chatRoomId) return;
+
       const q = query(
-        collection(db, "chats", chatRoomId, "messages"),
+        collection(db, "chats", chatRoomId, "messages"), // Adjusted query to directly target the messages subcollection
         orderBy("createdAt")
       );
-      const unsubscribe = onSnapshot(
-        q,
-        (snapshot) => {
-          const messages: Message[] = [];
-          snapshot.forEach((doc) => {
-            messages.push(doc.data() as Message);
-          });
-          setChatHistory(messages);
-        },
-        (error) => {
-          console.error("Error fetching chat history:", error);
-        }
-      );
+
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        const messages: Message[] = [];
+        snapshot.forEach((doc) => {
+          messages.push(doc.data() as Message);
+        });
+        setChatHistory(messages);
+      });
+
       return () => unsubscribe();
     };
 
     fetchChatHistory();
-  }, [currentUserEmail, searchedUserEmail]);
+  }, [chatRoomId]);
 
-  const handleSendMessage = () => {
-    const chatRoomId = generateChatRoomId(currentUserEmail, searchedUserEmail); // Update to use email
+  useEffect(() => {
+    const checkChatRoom = async () => {
+      const existingChatQuery = query(
+        collection(db, "chats"),
+        where("participants", "array-contains", currentUserId) // Use a single where clause for array-contains
+      );
+
+      const existingChatSnapshot = await getDocs(existingChatQuery);
+      if (!existingChatSnapshot.empty) {
+        // Iterate through existing chats to find the matching one
+        existingChatSnapshot.forEach((chatDoc) => {
+          const participants = chatDoc.data().participants as string[];
+          if (participants.includes(searchedUserId)) {
+            setChatRoomId(chatDoc.id);
+          }
+        });
+      } else {
+        // If no matching chat room found, create a new one
+        const newChatRef = firestoreDoc(collection(db, "chats")); // Generate a new document reference within the "chats" collection
+        await setDoc(newChatRef, {}); // Create the document without setting data
+        setChatRoomId(newChatRef.id); // Obtain the ID from the document reference
+        // Now set the document data with the obtained ID
+        await setDoc(newChatRef, {
+          participants: [currentUserId, searchedUserId],
+          createdAt: new Date(),
+        });
+      }
+    };
+
+    checkChatRoom();
+  }, [currentUserId, searchedUserId]);
+
+  const handleSendMessage = async () => {
+    if (!chatRoomId) return;
+
     const chatRef = collection(db, "chats", chatRoomId, "messages");
-    addDoc(chatRef, {
+
+    await addDoc(chatRef, {
       text: newMessage,
-      senderEmail: currentUserEmail, // Change senderId to senderEmail
+      senderId: currentUserId,
       createdAt: new Date(),
     });
+
     setNewMessage("");
   };
 
@@ -74,9 +109,7 @@ const ChatBox: React.FC<{
           <div
             key={index}
             className={
-              message.senderEmail === currentUserEmail
-                ? "text-right mb-2"
-                : "mb-2"
+              message.senderId === currentUserId ? "text-right mb-2" : "mb-2"
             }
           >
             <p className="inline-block bg-gray-200 px-2 py-1 rounded-lg">
@@ -111,8 +144,3 @@ const ChatBox: React.FC<{
 };
 
 export default ChatBox;
-
-// Function to generate a chat room ID based on the two user emails
-const generateChatRoomId = (email1: string, email2: string): string => {
-  return email1 < email2 ? `${email1}_${email2}` : `${email2}_${email1}`;
-};

@@ -1,11 +1,12 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import { useState } from "react";
 import { collection, query, where, getDocs } from "firebase/firestore";
-import { db } from "@/config";
+import { db, auth } from "@/config";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useAuthState } from "react-firebase-hooks/auth";
+import dynamic from "next/dynamic";
 
 // Dynamically import ChatBox component
 const ChatBox = dynamic(() => import("./chat"));
@@ -22,6 +23,7 @@ const ChatPage: React.FC = () => {
   const [searchedUser, setSearchedUser] = useState<User | null>(null);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [showChatBox, setShowChatBox] = useState<boolean>(false);
+  const [user] = useAuthState(auth);
 
   const handleSearch = async (): Promise<void> => {
     try {
@@ -75,8 +77,8 @@ const ChatPage: React.FC = () => {
         {showChatBox && searchedUser && (
           <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center bg-gray-700 bg-opacity-50">
             <ChatBox
-              currentUserEmail="searchedUser"
-              searchedUserEmail={searchedUser?.email}
+              currentUserId={user ? user.uid : ""} // Pass the user ID instead of email
+              searchedUserId={searchedUser.uid} // Use user ID instead of email
               onClose={handleCloseModal}
             />
           </div>
