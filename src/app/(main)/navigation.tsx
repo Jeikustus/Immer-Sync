@@ -67,7 +67,14 @@ export const NavigationBar = () => {
                     <em>{user.email}</em>
                   </p>
                 </div>
-              ) : null}
+              ) : (
+                <div className="flex justify-center items-center">
+                  <CircleUserRound />
+                  <p className="font-semibold">
+                    <em>{` no users found: ${null}`}</em>
+                  </p>
+                </div>
+              )}
             </div>
           </div>
           <div className="flex flex-row items-center justify-center space-y-1">

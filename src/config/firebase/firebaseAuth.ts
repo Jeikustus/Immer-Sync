@@ -2,17 +2,13 @@ import {
   signInWithEmailAndPassword as signInWithEmailAndPasswordFirebase,
   createUserWithEmailAndPassword as createUserWithEmailAndPasswordFirebase,
   sendPasswordResetEmail as sendPasswordResetEmailFirebase,
-  signOut as signOutFirebase,
 } from "firebase/auth";
 
 import {
-  query,
-  getDocs,
   collection,
-  where,
   addDoc,
 } from "firebase/firestore";
-import { auth, db, googleProvider } from "./firebaseConfig";
+import { auth, db } from "./firebaseConfig";
 
 interface UserData {
   uid: string;
@@ -46,6 +42,16 @@ export const createUserWithEmailAndPassword = async (email: string, password: st
   }
 };
 
+// Function to sign in with email and password
+export const signInWithEmailAndPassword = async (email: string, password: string) => {
+  try {
+    const userCredential = await signInWithEmailAndPasswordFirebase(auth, email, password);
+    return userCredential.user;
+  } catch (error) {
+    throw error;
+  }
+};
+
 // Function to reset password
 export const resetPassword = async (email: string) => {
   try {
@@ -56,12 +62,4 @@ export const resetPassword = async (email: string) => {
   }
 };
 
-// Function to sign in with email and password
-export const signInWithEmailAndPassword = async (email: string, password: string) => {
-  try {
-    const userCredential = await signInWithEmailAndPasswordFirebase(auth, email, password);
-    return userCredential.user;
-  } catch (error) {
-    throw error;
-  }
-};
+
