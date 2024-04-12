@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { collection, query, where, getDocs, addDoc } from "firebase/firestore";
 import { db, auth } from "@/config";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -34,6 +34,8 @@ const ChatPage: React.FC = () => {
   const [recipientUserId, setRecipientUserId] = useState<string>("");
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [userChatRooms, setUserChatRooms] = useState<string[]>([]);
+  const [chatRoomsData, setChatRoomsData] = useState<any[]>([]);
 
   const handleSearch = async (): Promise<void> => {
     try {
@@ -84,6 +86,33 @@ const ChatPage: React.FC = () => {
     };
 
     fetchUserData();
+  }, [user]);
+
+  useEffect(() => {
+    const fetchChatRooms = async () => {
+      try {
+        if (!user) return;
+
+        const userChatRoomsRef = collection(db, "chats");
+        const q = query(
+          userChatRoomsRef,
+          where("participants", "array-contains", user.uid)
+        );
+        const querySnapshot = await getDocs(q);
+
+        const chatRoomsDataArray: any[] = [];
+        querySnapshot.forEach((doc) => {
+          const chatRoomData = doc.data();
+          chatRoomsDataArray.push({ id: doc.id, ...chatRoomData });
+        });
+
+        setChatRoomsData(chatRoomsDataArray);
+      } catch (error) {
+        console.error("Error fetching user chat rooms:", error);
+      }
+    };
+
+    fetchChatRooms();
   }, [user]);
 
   const handleMessage = (recipientId: string): void => {
@@ -157,7 +186,16 @@ const ChatPage: React.FC = () => {
             </div>
           </div>
         )}
-        {searchedUser === null && <p className="text-gray-500">NO CHATS</p>}
+        <div>
+          {chatRoomsData.map((chatRoom: any) => (
+            <div key={chatRoom.id} className="border-b border-gray-300 py-2">
+              <p className="text-lg font-semibold">{chatRoom.recipientName}</p>
+              <Button onClick={() => handleMessage(chatRoom.recipientId)}>
+                Message
+              </Button>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
