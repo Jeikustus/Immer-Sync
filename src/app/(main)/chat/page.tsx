@@ -34,7 +34,6 @@ const ChatPage: React.FC = () => {
   const [recipientUserId, setRecipientUserId] = useState<string>("");
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [userChatRooms, setUserChatRooms] = useState<string[]>([]);
   const [chatRoomsData, setChatRoomsData] = useState<any[]>([]);
 
   const handleSearch = async (): Promise<void> => {
