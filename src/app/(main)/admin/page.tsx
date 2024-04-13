@@ -8,7 +8,7 @@ import {
   doc,
   updateDoc,
 } from "firebase/firestore";
-import { db } from "@/config";
+import { auth, db } from "@/config";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -60,9 +60,6 @@ const AdminPage = () => {
   const handleDecline = async (accountId: string) => {
     try {
       await deleteDoc(doc(db, "users", accountId));
-
-      await deleteUser(auth.currentUser);
-
       setAccounts(accounts.filter((account) => account.id !== accountId));
     } catch (error) {
       console.error("Error declining account:", error);
