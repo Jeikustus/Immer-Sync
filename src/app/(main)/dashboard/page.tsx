@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useEffect } from "react";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { db, auth } from "@/config";
@@ -10,7 +8,9 @@ interface UserData {
   name: string;
   email: string;
   accountType: string;
-  gradeLevel: string;
+  gradeLevel?: string; // Making gradeLevel optional since it depends on accountType
+  teacherGrade?: string; // Adding teacherGrade field
+  organizationName?: string; // Adding organizationName field
 }
 
 const DashboardPage = () => {
@@ -92,7 +92,13 @@ const DashboardPage = () => {
               <p>
                 {loading
                   ? "Loading..."
-                  : userData?.gradeLevel || "No Grade Level"}
+                  : userData?.accountType === "student"
+                  ? userData?.gradeLevel || "No Grade Level"
+                  : userData?.accountType === "teacher"
+                  ? userData?.teacherGrade || "No Teacher Grade"
+                  : userData?.accountType === "organization"
+                  ? userData?.organizationName || "No Organization Name"
+                  : "No Grade Level"}
               </p>
             </div>
           </div>

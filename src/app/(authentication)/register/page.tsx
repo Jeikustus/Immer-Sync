@@ -4,16 +4,19 @@ import React, { useState } from "react";
 import { InputWithLabel } from "@/components/ui/input-label";
 import { Button } from "@/components/ui/button";
 import { createUserWithEmailAndPassword } from "@/config";
-import { auth, db } from "@/config";
-import { addDoc, collection } from "firebase/firestore";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { TabsList } from "@radix-ui/react-tabs";
 
 const RegisterPage = () => {
   const [fullName, setFullName] = useState("");
   const [gradeLevel, setGradeLevel] = useState("");
+  const [teacherGrade, setTeacherGrade] = useState("");
+  const [organizationName, setOrganizationName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [accountType, setAccountType] = useState<string>("student");
 
   const handleRegister = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -22,21 +25,29 @@ const RegisterPage = () => {
       return;
     }
 
+    let additionalInfo = "";
+
+    if (accountType === "student") {
+      additionalInfo = gradeLevel;
+    } else if (accountType === "teacher") {
+      additionalInfo = teacherGrade;
+    } else if (accountType === "organization") {
+      additionalInfo = organizationName;
+    }
+
     try {
-      // Create user with email and password in Firebase Authentication
       await createUserWithEmailAndPassword(
         email,
         password,
         fullName,
-        gradeLevel,
-        "pending"
+        additionalInfo,
+        accountType
       );
 
-      // Redirect the user after successful registration
       alert("User registered successfully.");
-      window.location.href = "/"; // Redirect to the home page
+      window.location.href = "/";
     } catch (error) {
-      setError((error as Error).message); // Set error message if registration fails
+      setError((error as Error).message);
     }
   };
 
@@ -53,14 +64,61 @@ const RegisterPage = () => {
             onChange={(e) => setFullName(e.target.value)}
             className="mb-4"
           />
-          <InputWithLabel
-            label="Grade Level"
-            type="text"
-            placeholder="Enter your grade level"
-            value={gradeLevel}
-            onChange={(e) => setGradeLevel(e.target.value)}
-            className="mb-4"
-          />
+          <div>
+            <Tabs defaultValue="student" className="w-[400px]">
+              <TabsList>
+                <TabsTrigger
+                  value="student"
+                  onClick={() => setAccountType("student")}
+                >
+                  Student
+                </TabsTrigger>
+                <TabsTrigger
+                  value="teacher"
+                  onClick={() => setAccountType("teacher")}
+                >
+                  Teacher
+                </TabsTrigger>
+                <TabsTrigger
+                  value="organization"
+                  onClick={() => setAccountType("organization")}
+                >
+                  Organization
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent value="student">
+                <InputWithLabel
+                  label="Grade Level"
+                  type="text"
+                  placeholder="Enter your grade level"
+                  value={gradeLevel}
+                  onChange={(e) => setGradeLevel(e.target.value)}
+                  className="mb-4"
+                />
+              </TabsContent>
+              <TabsContent value="teacher">
+                <InputWithLabel
+                  label="Teacher Grade"
+                  type="text"
+                  placeholder="Enter your teacher grade"
+                  value={teacherGrade}
+                  onChange={(e) => setTeacherGrade(e.target.value)}
+                  className="mb-4"
+                />
+              </TabsContent>
+              <TabsContent value="organization">
+                <InputWithLabel
+                  label="Organization Name"
+                  type="text"
+                  placeholder="Enter your organization name"
+                  value={organizationName}
+                  onChange={(e) => setOrganizationName(e.target.value)}
+                  className="mb-4"
+                />
+              </TabsContent>
+            </Tabs>
+          </div>
+
           <InputWithLabel
             label="Email"
             type="email"
@@ -90,7 +148,7 @@ const RegisterPage = () => {
             type="submit"
             className="w-full bg-blue-500 text-white py-3 rounded-md hover:bg-blue-600"
           >
-            Register
+            Register as {accountType}
           </Button>
         </form>
       </div>
