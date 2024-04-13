@@ -26,6 +26,9 @@ const LoginPage = () => {
           case "pending":
             window.location.href = "/pending";
             break;
+          case "declined":
+            window.location.href = "/declined-account";
+            break;
           default:
             window.location.href = "/dashboard";
             break;

@@ -10,6 +10,7 @@ import { TabsList } from "@radix-ui/react-tabs";
 const RegisterPage = () => {
   const [fullName, setFullName] = useState("");
   const [gradeLevel, setGradeLevel] = useState("");
+  const [classSection, setClassSection] = useState("");
   const [teacherGrade, setTeacherGrade] = useState("");
   const [organizationName, setOrganizationName] = useState("");
   const [email, setEmail] = useState("");
@@ -93,6 +94,14 @@ const RegisterPage = () => {
                   placeholder="Enter your grade level"
                   value={gradeLevel}
                   onChange={(e) => setGradeLevel(e.target.value)}
+                  className="mb-4"
+                />
+                <InputWithLabel
+                  label="Section"
+                  type="text"
+                  placeholder="Enter your grade level"
+                  value={classSection}
+                  onChange={(e) => setClassSection(e.target.value)}
                   className="mb-4"
                 />
               </TabsContent>

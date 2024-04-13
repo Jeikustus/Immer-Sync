@@ -2,11 +2,14 @@ import {
   signInWithEmailAndPassword as signInWithEmailAndPasswordFirebase,
   createUserWithEmailAndPassword as createUserWithEmailAndPasswordFirebase,
   sendPasswordResetEmail as sendPasswordResetEmailFirebase,
+  deleteUser,
 } from "firebase/auth";
 
 import {
   collection,
   addDoc,
+  doc,
+  deleteDoc,
 } from "firebase/firestore";
 import { auth, db } from "./firebaseConfig";
 
