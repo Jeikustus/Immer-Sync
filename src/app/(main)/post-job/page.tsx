@@ -10,7 +10,9 @@ interface FormData {
   jobTitle: string;
   jobDescription: string;
   author: string;
+  authorUID: string;
   organizationName: string;
+  createdAt: any;
 }
 
 const PostJobPage = () => {
@@ -19,8 +21,10 @@ const PostJobPage = () => {
     category: "",
     jobTitle: "",
     jobDescription: "",
-    author: "",
+    author: `${user ? user.email : null}`,
+    authorUID: `${user ? user.uid : null}`,
     organizationName: "",
+    createdAt: `${new Date()}`,
   });
 
   const handleChange = (
@@ -33,16 +37,17 @@ const PostJobPage = () => {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      // Add job to Firestore
       await addDoc(collection(db, "jobs"), formData);
       alert("Job posted successfully:");
-      // Reset form data
+
       setFormData({
         category: "",
         jobTitle: "",
         jobDescription: "",
-        author: "",
+        author: `${user ? user.email : null}`,
+        authorUID: "",
         organizationName: "",
+        createdAt: "",
       });
     } catch (error) {
       console.error("Error posting job:", error);
