@@ -7,6 +7,7 @@ import {
   deleteDoc,
   doc,
   updateDoc,
+  getDoc,
 } from "firebase/firestore";
 import { auth, db } from "@/config";
 import {
@@ -57,10 +58,20 @@ const AdminPage = () => {
     fetchAccounts();
   }, []);
 
-  const handleDecline = async (accountId: string) => {
+  const handleDecline = async (accountId: string, newAccountType: string) => {
     try {
-      await deleteDoc(doc(db, "users", accountId));
-      setAccounts(accounts.filter((account) => account.id !== accountId));
+      await updateDoc(doc(db, "users", accountId), {
+        accountType: newAccountType,
+      });
+
+      setAccounts(
+        accounts.map((account) => {
+          if (account.id === accountId) {
+            return { ...account, accountType: newAccountType };
+          }
+          return account;
+        })
+      );
     } catch (error) {
       console.error("Error declining account:", error);
     }
@@ -152,7 +163,7 @@ const AdminPage = () => {
                 <td className="px-4 py-2 border border-gray-200">
                   <button
                     className="mr-2 bg-red-500 text-white px-4 py-1 rounded"
-                    onClick={() => handleDecline(account.id)}
+                    onClick={() => handleDecline(account.id, "declined")}
                   >
                     Decline
                   </button>
