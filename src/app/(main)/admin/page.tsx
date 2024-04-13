@@ -17,6 +17,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { DropdownMenuItem } from "@radix-ui/react-dropdown-menu";
+import { deleteUser } from "firebase/auth";
 
 interface UserData {
   id: string;
@@ -59,6 +60,9 @@ const AdminPage = () => {
   const handleDecline = async (accountId: string) => {
     try {
       await deleteDoc(doc(db, "users", accountId));
+
+      await deleteUser(auth.currentUser);
+
       setAccounts(accounts.filter((account) => account.id !== accountId));
     } catch (error) {
       console.error("Error declining account:", error);

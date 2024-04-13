@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect } from "react";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { db, auth } from "@/config";
@@ -8,9 +10,9 @@ interface UserData {
   name: string;
   email: string;
   accountType: string;
-  gradeLevel?: string; // Making gradeLevel optional since it depends on accountType
-  teacherGrade?: string; // Adding teacherGrade field
-  organizationName?: string; // Adding organizationName field
+  gradeLevel?: string;
+  teacherGrade?: string;
+  organizationName?: string;
 }
 
 const DashboardPage = () => {
@@ -21,7 +23,7 @@ const DashboardPage = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const loggedInUserEmail = `${user ? user.email : null}`;
+        const loggedInUserEmail = user ? user.email : null;
 
         if (loggedInUserEmail) {
           const usersCollection = collection(db, "users");
@@ -33,6 +35,7 @@ const DashboardPage = () => {
 
           if (!querySnapshot.empty) {
             const userData = querySnapshot.docs[0].data() as UserData;
+            console.log("Fetched user data:", userData);
             setUserData(userData);
           } else {
             console.warn("No user found with the provided email");
@@ -88,17 +91,6 @@ const DashboardPage = () => {
                 {loading
                   ? "Loading..."
                   : userData?.accountType || "No Account Type"}
-              </p>
-              <p>
-                {loading
-                  ? "Loading..."
-                  : userData?.accountType === "student"
-                  ? userData?.gradeLevel || "No Grade Level"
-                  : userData?.accountType === "teacher"
-                  ? userData?.teacherGrade || "No Teacher Grade"
-                  : userData?.accountType === "organization"
-                  ? userData?.organizationName || "No Organization Name"
-                  : "No Grade Level"}
               </p>
             </div>
           </div>
