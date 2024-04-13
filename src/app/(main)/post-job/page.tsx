@@ -38,6 +38,12 @@ const PostJobPage = () => {
     e.preventDefault();
     try {
       await addDoc(collection(db, "jobs"), formData);
+      await addDoc(collection(db, "job-notifications"), {
+        jobTitle: formData.jobTitle,
+        author: formData.author,
+        createdAt: formData.createdAt,
+      });
+
       alert("Job posted successfully:");
 
       setFormData({

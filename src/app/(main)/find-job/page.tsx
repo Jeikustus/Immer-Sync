@@ -38,11 +38,17 @@ const FindJobPage: React.FC = () => {
     fetchJobs();
   }, []);
 
+  const handleApply = (jobTitle: string) => {
+    window.location.href = `/apply-job?jobTitle=${encodeURIComponent(
+      jobTitle
+    )}`;
+  };
+
   const handleMessage = async (authorUID: string): Promise<void> => {
     setAuthorUID(authorUID);
     setShowChatBox(true);
-    setLoading(true); // Reset loading state
-    setUserData(null); // Reset user data
+    setLoading(true);
+    setUserData(null);
 
     try {
       const userDoc = await getDoc(doc(db, "users", authorUID));
@@ -89,7 +95,13 @@ const FindJobPage: React.FC = () => {
                 onClick={() => handleMessage(job.authorUID)}
                 className="bg-blue-500 hover:bg-blue-600 text-white mr-2"
               >
-                Message & Apply
+                Message
+              </Button>
+              <Button
+                onClick={() => handleApply(job.jobTitle)} // Pass the job title as an argument
+                className="bg-green-500 hover:bg-green-600 text-white mr-2"
+              >
+                Apply
               </Button>
             </div>
           </div>

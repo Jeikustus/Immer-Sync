@@ -19,6 +19,12 @@ import { auth, db, logoutUser } from "@/config";
 import { Button } from "@/components/ui/button";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { useState, useEffect } from "react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface UserData {
   name: string;
@@ -109,10 +115,32 @@ export const NavigationBar = () => {
                 )}
                 {userData?.accountType === "Organization" && (
                   <>
-                    <BadgePlus />
-                    <Link href={"/post-job"}>
-                      <Button variant={"ghost"}>Post Job</Button>
-                    </Link>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger>
+                        <div className="flex justify-center items-center hover:bg-white hover:text-black hover:rounded-md">
+                          <BadgePlus />
+                          <p className="px-1 text-md">Jobs</p>
+                        </div>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem>
+                          <div className="flex justify-center items-center">
+                            <BadgePlus />
+                            <Link href={"/post-job"}>
+                              <Button variant={"ghost"}>Post Job</Button>
+                            </Link>
+                          </div>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <div className="flex justify-center items-center">
+                            <Search />
+                            <Link href={"/job-view"}>
+                              <Button variant={"ghost"}>View Feed Back</Button>
+                            </Link>
+                          </div>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </>
                 )}
                 {(!userData ||
