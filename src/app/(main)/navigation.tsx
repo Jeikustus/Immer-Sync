@@ -134,7 +134,7 @@ export const NavigationBar = () => {
                         <DropdownMenuItem>
                           <div className="flex justify-center items-center">
                             <Search />
-                            <Link href={"/job-view"}>
+                            <Link href={"/job-view-feedback"}>
                               <Button variant={"ghost"}>View Feed Back</Button>
                             </Link>
                           </div>

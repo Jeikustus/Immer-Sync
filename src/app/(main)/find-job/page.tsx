@@ -1,11 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { collection, getDocs, doc, getDoc } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  where,
+} from "firebase/firestore";
 import { db, auth } from "@/config";
 import ChatBox from "../chat/chat";
 import { Button } from "@/components/ui/button";
 import { useAuthState } from "react-firebase-hooks/auth";
+import { Input } from "@/components/ui/input";
 
 interface UserData {
   name: string;
@@ -19,12 +27,18 @@ const FindJobPage: React.FC = () => {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [user] = useAuthState(auth);
+  const [searchTerm, setSearchTerm] = useState<string>("");
+
+  const [categoryFilter, setCategoryFilter] = useState<string | null>(null); // State to store category filter
 
   useEffect(() => {
     const fetchJobs = async () => {
       try {
         const jobCollection = collection(db, "jobs");
-        const querySnapshot = await getDocs(jobCollection);
+        const q = categoryFilter // Check if category filter is applied
+          ? query(jobCollection, where("category", "==", categoryFilter))
+          : jobCollection; // If not, get all jobs
+        const querySnapshot = await getDocs(q);
         const jobsData = querySnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
@@ -36,7 +50,7 @@ const FindJobPage: React.FC = () => {
     };
 
     fetchJobs();
-  }, []);
+  }, [categoryFilter]); // Re-fetch jobs when category filter changes
 
   const handleApply = (jobTitle: string) => {
     window.location.href = `/apply-job?jobTitle=${encodeURIComponent(
@@ -67,9 +81,49 @@ const FindJobPage: React.FC = () => {
     setShowChatBox(false);
   };
 
+  const handleSearch = async (searchTerm: string) => {
+    try {
+      const jobCollection = collection(db, "jobs");
+      let q = query(jobCollection);
+
+      if (searchTerm.trim() !== "") {
+        q = query(jobCollection, where("category", "==", searchTerm));
+      }
+
+      const querySnapshot = await getDocs(q);
+      const jobsData = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setJobs(jobsData);
+    } catch (error) {
+      console.error("Error fetching jobs:", error);
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 h-screen overflow-y-auto">
       <h1 className="text-3xl font-semibold mb-4">Find Job</h1>
+      <div className="mb-4">
+        <Input
+          placeholder="Search by Author, Project Title, or Category"
+          type="text"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          onKeyPress={(e) => {
+            if (e.key === "Enter") {
+              handleSearch(searchTerm);
+            }
+          }}
+        />
+        <Button
+          onClick={() => handleSearch(searchTerm)} // Pass the searchTerm to handleSearch
+          className="bg-blue-500 hover:bg-blue-600 text-white"
+        >
+          Search
+        </Button>
+      </div>
+
       <div className="grid gap-8 scrollbar-hide">
         {jobs.map((job) => (
           <div
@@ -98,7 +152,7 @@ const FindJobPage: React.FC = () => {
                 Message
               </Button>
               <Button
-                onClick={() => handleApply(job.jobTitle)} // Pass the job title as an argument
+                onClick={() => handleApply(job.jobTitle)}
                 className="bg-green-500 hover:bg-green-600 text-white mr-2"
               >
                 Apply
