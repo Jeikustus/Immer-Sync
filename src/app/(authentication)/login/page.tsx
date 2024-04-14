@@ -20,7 +20,7 @@ const LoginPage = () => {
         const accountType = await checkAccountType(currentUser.uid);
 
         switch (accountType) {
-          case "admin":
+          case "Admin":
             window.location.href = "/admin";
             break;
           case "pending":
@@ -72,8 +72,15 @@ const LoginPage = () => {
             >
               Login
             </Button>
-            <div className="text-sm">
-              <p>Forgot password? Click here!</p>
+            <div className="text-sm mt-2">
+              <p
+                className="text-blue-500 hover:underline cursor-pointer"
+                onClick={() => {
+                  window.location.href = "/forgot-password";
+                }}
+              >
+                Forgot password? Click here!
+              </p>
             </div>
           </div>
         </form>

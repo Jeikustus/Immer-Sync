@@ -12,6 +12,7 @@ import {
   MessageSquareHeart,
   Search,
   Settings,
+  ShieldEllipsis,
   X,
 } from "lucide-react";
 import { useAuthState } from "react-firebase-hooks/auth";
@@ -97,6 +98,14 @@ export const NavigationBar = () => {
               "Loading..."
             ) : (
               <>
+                {userData?.accountType === "Admin" && (
+                  <>
+                    <ShieldEllipsis />
+                    <Link href={"/admin"}>
+                      <Button variant={"ghost"}>Admin</Button>
+                    </Link>
+                  </>
+                )}
                 {userData?.accountType === "Student" && (
                   <>
                     <MessageSquareHeart />
@@ -144,7 +153,7 @@ export const NavigationBar = () => {
                   </>
                 )}
                 {(!userData ||
-                  !["Student", "Teacher", "Organization"].includes(
+                  !["Student", "Teacher", "Organization", "Admin"].includes(
                     userData.accountType
                   )) && (
                   <>
