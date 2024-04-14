@@ -11,24 +11,31 @@ import {
 } from "firebase/firestore";
 import { db, auth } from "@/config";
 import { Button } from "@/components/ui/button";
-import { BellRing, CircleX } from "lucide-react";
+import { BellRing, BriefcaseBusiness, CircleX, Send } from "lucide-react";
 
 interface Notification {
   id: string;
   text: string;
   senderName: string;
-  createdAt: {
-    toDate: () => Date;
-  };
+}
+
+interface JobNotification {
+  id: string;
+  text: string;
+  senderName: string;
 }
 
 const NotificationPage: React.FC = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [jobNotifications, setJobNotifications] = useState<JobNotification[]>(
+    []
+  );
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
       if (user) {
         fetchNotifications(user.uid);
+        fetchJobNotifications();
       } else {
         console.log("USER NOT FOUND");
       }
@@ -43,22 +50,40 @@ const NotificationPage: React.FC = () => {
       const querySnapshot = await getDocs(q);
 
       const fetchedNotifications: Notification[] = [];
-      for (const doc of querySnapshot.docs) {
+      querySnapshot.forEach((doc) => {
         const data = doc.data() as DocumentData;
         const senderName = data.senderName;
         fetchedNotifications.push({
           id: doc.id,
           text: data.text,
           senderName: senderName,
-          createdAt: {
-            toDate: () => data.createdAt.toDate(),
-          },
         });
-      }
+      });
 
       setNotifications(fetchedNotifications);
     } catch (error) {
       console.error("Error fetching notifications:", error);
+    }
+  };
+
+  const fetchJobNotifications = async () => {
+    try {
+      const jobNotificationsQ = query(collection(db, "job-notifications"));
+      const querySnapshot = await getDocs(jobNotificationsQ);
+
+      const fetchedNotifications: JobNotification[] = [];
+      querySnapshot.forEach((doc) => {
+        const data = doc.data() as DocumentData;
+        fetchedNotifications.push({
+          id: doc.id,
+          text: data.jobTitle,
+          senderName: `Posted By: ${data.author}`,
+        });
+      });
+
+      setJobNotifications(fetchedNotifications);
+    } catch (error) {
+      console.error("Error fetching job notifications:", error);
     }
   };
 
@@ -105,6 +130,32 @@ const NotificationPage: React.FC = () => {
               aria-label="Close"
             >
               <CircleX />
+            </button>
+          </div>
+        ))}
+        {jobNotifications.map((notification) => (
+          <div
+            key={notification.id}
+            className="flex items-center w-full max-w-xs p-4 text-gray-500 bg-white rounded-lg shadow"
+            role="alert"
+          >
+            <div className="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-green-500 bg-blue-100 rounded-lg">
+              <BriefcaseBusiness />
+            </div>
+            <div className="ms-3">
+              <div className="text-md font-bold">{notification.text}</div>
+              <div className="text-sm">
+                <em>{notification.senderName}</em>
+              </div>
+            </div>
+            <button
+              onClick={() => deleteNotification(notification.id)}
+              type="button"
+              className="ms-auto -mx-1.5 -my-1.5 bg-white text-blue-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex items-center justify-center h-8
+              w-8"
+              aria-label="Close"
+            >
+              <Send />
             </button>
           </div>
         ))}

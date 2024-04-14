@@ -2,25 +2,30 @@ import {
   signInWithEmailAndPassword as signInWithEmailAndPasswordFirebase,
   createUserWithEmailAndPassword as createUserWithEmailAndPasswordFirebase,
   sendPasswordResetEmail as sendPasswordResetEmailFirebase,
+  deleteUser,
 } from "firebase/auth";
 
 import {
   collection,
   addDoc,
+  doc,
+  deleteDoc,
 } from "firebase/firestore";
 import { auth, db } from "./firebaseConfig";
 
 interface UserData {
   uid: string;
   name: string;
-  gradeLevel: string;
   email: string;
   authProvider: string;
   accountType: string;
+  gradeLevel?: string; 
+  teacherGrade?: string; 
+  organizationName?: string; 
 }
 
 // Function to create a user with email and password and save user data to Firestore
-export const createUserWithEmailAndPassword = async (email: string, password: string, name: string, gradeLevel: string, accountType: string) => {
+export const createUserWithEmailAndPassword = async (email: string, password: string, name: string, additionalInfo: string, accountType: string) => {
   try {
     // Create user in Firebase Authentication
     const userCredential = await createUserWithEmailAndPasswordFirebase(auth, email, password);
@@ -30,11 +35,19 @@ export const createUserWithEmailAndPassword = async (email: string, password: st
     const userData: UserData = {
       uid,
       name,
-      gradeLevel,
       email,
       authProvider: "local",
       accountType: "pending",
     };
+
+    // Set additional info based on accountType
+    if (accountType === "student") {
+      userData.gradeLevel = additionalInfo;
+    } else if (accountType === "teacher") {
+      userData.teacherGrade = additionalInfo;
+    } else if (accountType === "organization") {
+      userData.organizationName = additionalInfo;
+    }
 
     // Add user data to Firestore
     await addDoc(collection(db, "users"), userData);
@@ -44,6 +57,9 @@ export const createUserWithEmailAndPassword = async (email: string, password: st
     throw error;
   }
 };
+
+
+
 
 // Function to sign in with email and password
 export const signInWithEmailAndPassword = async (email: string, password: string) => {

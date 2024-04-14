@@ -143,7 +143,6 @@ const ChatBox: React.FC<{
               attachmentURL: downloadURL,
             });
 
-            // Add message to the recipient's notification collection
             const notificationRef = collection(
               db,
               "notifications",

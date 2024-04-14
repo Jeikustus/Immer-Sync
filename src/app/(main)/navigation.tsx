@@ -2,20 +2,74 @@
 
 import Link from "next/link";
 import {
+  BadgePlus,
   BellRing,
   CircleUserRound,
+  CircleX,
   LayoutDashboard,
   LogOut,
   Mail,
   MessageSquareHeart,
+  Search,
   Settings,
+  X,
 } from "lucide-react";
 import { useAuthState } from "react-firebase-hooks/auth";
-import { auth, logoutUser } from "@/config";
+import { auth, db, logoutUser } from "@/config";
 import { Button } from "@/components/ui/button";
+import { collection, query, where, getDocs } from "firebase/firestore";
+import { useState, useEffect } from "react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+interface UserData {
+  name: string;
+  email: string;
+  accountType: string;
+  gradeLevel?: string;
+  teacherGrade?: string;
+  organizationName?: string;
+}
 
 export const NavigationBar = () => {
   const [user] = useAuthState(auth);
+  const [userData, setUserData] = useState<UserData | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const loggedInUserEmail = `${user ? user.email : null}`;
+
+        if (loggedInUserEmail) {
+          const usersCollection = collection(db, "users");
+          const q = query(
+            usersCollection,
+            where("email", "==", loggedInUserEmail)
+          );
+          const querySnapshot = await getDocs(q);
+
+          if (!querySnapshot.empty) {
+            const userData = querySnapshot.docs[0].data() as UserData;
+            setUserData(userData);
+          } else {
+            console.warn("No user found with the provided email");
+          }
+        }
+
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, [user]);
 
   const handleLogout = async () => {
     logoutUser();
@@ -39,11 +93,71 @@ export const NavigationBar = () => {
             </Link>
           </div>
           <div className="flex justify-center items-center hover:bg-white hover:text-black hover:rounded-md">
-            <MessageSquareHeart />
-            <Link href={"/feedback"}>
-              <Button variant={"ghost"}>Feedback</Button>
-            </Link>
+            {loading ? (
+              "Loading..."
+            ) : (
+              <>
+                {userData?.accountType === "Student" && (
+                  <>
+                    <MessageSquareHeart />
+                    <Link href={"/feedback"}>
+                      <Button variant={"ghost"}>Feedback</Button>
+                    </Link>
+                  </>
+                )}
+                {userData?.accountType === "Teacher" && (
+                  <>
+                    <Search />
+                    <Link href={"/find-job"}>
+                      <Button variant={"ghost"}>Find Job</Button>
+                    </Link>
+                  </>
+                )}
+                {userData?.accountType === "Organization" && (
+                  <>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger>
+                        <div className="flex justify-center items-center hover:bg-white hover:text-black hover:rounded-md">
+                          <BadgePlus />
+                          <p className="px-1 text-md">Jobs</p>
+                        </div>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem>
+                          <div className="flex justify-center items-center">
+                            <BadgePlus />
+                            <Link href={"/post-job"}>
+                              <Button variant={"ghost"}>Post Job</Button>
+                            </Link>
+                          </div>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <div className="flex justify-center items-center">
+                            <Search />
+                            <Link href={"/job-view-feedback"}>
+                              <Button variant={"ghost"}>View Feed Back</Button>
+                            </Link>
+                          </div>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </>
+                )}
+                {(!userData ||
+                  !["Student", "Teacher", "Organization"].includes(
+                    userData.accountType
+                  )) && (
+                  <>
+                    <CircleX />
+                    <Link href={"/dashboard"}>
+                      <Button variant={"ghost"}>Error</Button>
+                    </Link>
+                  </>
+                )}
+              </>
+            )}
           </div>
+
           <div className="flex justify-center items-center hover:bg-white hover:text-black hover:rounded-md">
             <BellRing />
             <Link href={"/notification"}>

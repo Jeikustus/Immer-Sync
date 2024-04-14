@@ -7,8 +7,9 @@ import {
   deleteDoc,
   doc,
   updateDoc,
+  getDoc,
 } from "firebase/firestore";
-import { db } from "@/config";
+import { auth, db } from "@/config";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,12 +18,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { DropdownMenuItem } from "@radix-ui/react-dropdown-menu";
+import { deleteUser } from "firebase/auth";
 
 interface UserData {
   id: string;
   uid: string;
   name: string;
-  gradeLevel: string;
+  gradeLevel?: string;
+  teacherGrade?: string;
+  organizationName?: string;
   email: string;
   authProvider: string;
   accountType: string;
@@ -54,10 +58,20 @@ const AdminPage = () => {
     fetchAccounts();
   }, []);
 
-  const handleDecline = async (accountId: string) => {
+  const handleDecline = async (accountId: string, newAccountType: string) => {
     try {
-      await deleteDoc(doc(db, "users", accountId));
-      setAccounts(accounts.filter((account) => account.id !== accountId));
+      await updateDoc(doc(db, "users", accountId), {
+        accountType: newAccountType,
+      });
+
+      setAccounts(
+        accounts.map((account) => {
+          if (account.id === accountId) {
+            return { ...account, accountType: newAccountType };
+          }
+          return account;
+        })
+      );
     } catch (error) {
       console.error("Error declining account:", error);
     }
@@ -93,7 +107,9 @@ const AdminPage = () => {
           <thead>
             <tr className="bg-gray-100">
               <th className="px-4 py-2 border border-gray-200">Name</th>
-              <th className="px-4 py-2 border border-gray-200">Grade Level</th>
+              <th className="px-4 py-2 border border-gray-200">
+                Registered As
+              </th>
               <th className="px-4 py-2 border border-gray-200">Email</th>
               <th className="px-4 py-2 border border-gray-200">Account Type</th>
               <th className="px-4 py-2 border border-gray-200">Actions</th>
@@ -106,7 +122,11 @@ const AdminPage = () => {
                   {account.name}
                 </td>
                 <td className="px-4 py-2 border border-gray-200">
-                  {account.gradeLevel}
+                  {account.gradeLevel
+                    ? "Student"
+                    : account.teacherGrade
+                    ? "Teacher"
+                    : "Organization"}
                 </td>
                 <td className="px-4 py-2 border border-gray-200">
                   {account.email}
@@ -114,9 +134,7 @@ const AdminPage = () => {
                 <td className="px-4 py-2 border border-gray-200">
                   <DropdownMenu>
                     <DropdownMenuTrigger>
-                      <button className=" text-blue-600 font-bold px-4 py-1 rounded">
-                        {account.accountType}
-                      </button>
+                      {account.accountType}
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
                       <DropdownMenuLabel>Change Account Type</DropdownMenuLabel>
@@ -145,7 +163,7 @@ const AdminPage = () => {
                 <td className="px-4 py-2 border border-gray-200">
                   <button
                     className="mr-2 bg-red-500 text-white px-4 py-1 rounded"
-                    onClick={() => handleDecline(account.id)}
+                    onClick={() => handleDecline(account.id, "declined")}
                   >
                     Decline
                   </button>

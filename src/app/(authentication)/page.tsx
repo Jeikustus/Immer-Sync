@@ -16,7 +16,6 @@ export default function Home() {
             priority
           />
         </div>
-
         <div className="flex flex-col justify-center items-center bg-gradient-to-r from-[#2b4032] to-[#2b4032]/80">
           <Tabs defaultValue="login" className="w-[800px]">
             <TabsList className="flex justify-center space-x-10">

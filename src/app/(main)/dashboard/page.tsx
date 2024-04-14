@@ -10,7 +10,9 @@ interface UserData {
   name: string;
   email: string;
   accountType: string;
-  gradeLevel: string;
+  gradeLevel?: string;
+  teacherGrade?: string;
+  organizationName?: string;
 }
 
 const DashboardPage = () => {
@@ -21,7 +23,7 @@ const DashboardPage = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const loggedInUserEmail = `${user ? user.email : null}`;
+        const loggedInUserEmail = user ? user.email : null;
 
         if (loggedInUserEmail) {
           const usersCollection = collection(db, "users");
@@ -33,6 +35,7 @@ const DashboardPage = () => {
 
           if (!querySnapshot.empty) {
             const userData = querySnapshot.docs[0].data() as UserData;
+            console.log("Fetched user data:", userData);
             setUserData(userData);
           } else {
             console.warn("No user found with the provided email");
@@ -88,11 +91,6 @@ const DashboardPage = () => {
                 {loading
                   ? "Loading..."
                   : userData?.accountType || "No Account Type"}
-              </p>
-              <p>
-                {loading
-                  ? "Loading..."
-                  : userData?.gradeLevel || "No Grade Level"}
               </p>
             </div>
           </div>
