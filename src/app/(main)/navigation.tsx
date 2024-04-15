@@ -79,14 +79,14 @@ export const NavigationBar = () => {
 
   return (
     <nav className="shadow-md shadow-white bg-[#2b4032] text-white">
-      <div className="grid grid-cols-3 p-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 p-4">
         <div className="flex justify-center items-center space-x-5">
           <div className="font-bold text-3xl drop-shadow-lg">
             <span className="text-[#88AB8E] ">Immer</span>
             <span className="text-slate-500">Sync</span>
           </div>
         </div>
-        <div className="grid grid-cols-4">
+        <div className="sm:col-span-2 lg:col-span-1 grid grid-cols-2 lg:grid-cols-4">
           <div className="flex justify-center items-center hover:bg-white hover:text-black hover:rounded-md">
             <LayoutDashboard />
             <Link href={"/dashboard"}>
@@ -144,7 +144,7 @@ export const NavigationBar = () => {
                           <div className="flex justify-center items-center">
                             <Search />
                             <Link href={"/job-view-feedback"}>
-                              <Button variant={"ghost"}>View Feed Back</Button>
+                              <Button variant={"ghost"}>View Feedback</Button>
                             </Link>
                           </div>
                         </DropdownMenuItem>
@@ -180,7 +180,7 @@ export const NavigationBar = () => {
             </Link>
           </div>
         </div>
-        <div className="flex justify-center items-center space-x-5">
+        <div className="flex justify-center items-center space-x-5 sm:col-span-2 lg:col-span-1">
           <div className="flex justify-center items-center">
             <div className="font-semibold">
               {user ? (

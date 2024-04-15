@@ -103,75 +103,80 @@ const AdminPage = () => {
       {loading ? (
         <p className="text-center">Loading...</p>
       ) : (
-        <table className="w-full border-collapse border border-gray-200">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="px-4 py-2 border border-gray-200">Name</th>
-              <th className="px-4 py-2 border border-gray-200">
-                Registered As
-              </th>
-              <th className="px-4 py-2 border border-gray-200">Email</th>
-              <th className="px-4 py-2 border border-gray-200">Account Type</th>
-              <th className="px-4 py-2 border border-gray-200">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="text-white">
-            {accounts.map((account) => (
-              <tr key={account.id}>
-                <td className="px-4 py-2 border border-gray-200">
-                  {account.name}
-                </td>
-                <td className="px-4 py-2 border border-gray-200">
-                  {account.gradeLevel
-                    ? "Student"
-                    : account.teacherGrade
-                    ? "Teacher"
-                    : "Organization"}
-                </td>
-                <td className="px-4 py-2 border border-gray-200">
-                  {account.email}
-                </td>
-                <td className="px-4 py-2 border border-gray-200">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger>
-                      {account.accountType}
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                      <DropdownMenuLabel>Change Account Type</DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onClick={() => handleApprove(account.id, "Teacher")}
-                      >
-                        Teacher
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => handleApprove(account.id, "Student")}
-                      >
-                        Student
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() =>
-                          handleApprove(account.id, "Organization")
-                        }
-                      >
-                        Organization
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </td>
-
-                <td className="px-4 py-2 border border-gray-200">
-                  <button
-                    className="mr-2 bg-red-500 text-white px-4 py-1 rounded"
-                    onClick={() => handleDecline(account.id, "declined")}
-                  >
-                    Decline
-                  </button>
-                </td>
+        <div className="max-w-full mx-auto px-4 py-8 h-[700px] overflow-y-auto">
+          <table className="w-full border-collapse border border-gray-200">
+            <thead>
+              <tr className="bg-gray-100">
+                <th className="px-4 py-2 border border-gray-200">Name</th>
+                <th className="px-4 py-2 border border-gray-200">
+                  Registered As
+                </th>
+                <th className="px-4 py-2 border border-gray-200">Email</th>
+                <th className="px-4 py-2 border border-gray-200">
+                  Account Type
+                </th>
+                <th className="px-4 py-2 border border-gray-200">Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="text-white">
+              {accounts.map((account) => (
+                <tr key={account.id}>
+                  <td className="px-4 py-2 border border-gray-200">
+                    {account.name}
+                  </td>
+                  <td className="px-4 py-2 border border-gray-200">
+                    {account.gradeLevel
+                      ? "Student"
+                      : account.teacherGrade
+                      ? "Teacher"
+                      : "Organization"}
+                  </td>
+                  <td className="px-4 py-2 border border-gray-200">
+                    {account.email}
+                  </td>
+                  <td className="px-4 py-2 border border-gray-200">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger>
+                        {account.accountType}
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuLabel>
+                          Change Account Type
+                        </DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={() => handleApprove(account.id, "Teacher")}
+                        >
+                          Teacher
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => handleApprove(account.id, "Student")}
+                        >
+                          Student
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() =>
+                            handleApprove(account.id, "Organization")
+                          }
+                        >
+                          Organization
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </td>
+                  <td className="px-4 py-2 border border-gray-200">
+                    <button
+                      className="mr-2 bg-red-500 text-white px-4 py-1 rounded"
+                      onClick={() => handleDecline(account.id, "declined")}
+                    >
+                      Decline
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

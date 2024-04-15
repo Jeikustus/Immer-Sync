@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useAuthState } from "react-firebase-hooks/auth";
 import dynamic from "next/dynamic";
+import { Angry } from "lucide-react";
 
 // Dynamically import ChatBox component
 const ChatBox = dynamic(() => import("./chat"));
@@ -34,7 +35,7 @@ const ChatPage: React.FC = () => {
   const [recipientUserId, setRecipientUserId] = useState<string>("");
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [chatRoomsData, setChatRoomsData] = useState<any[]>([]);
+  const [chatRooms, setChatRooms] = useState<any[]>([]);
 
   const handleSearch = async (): Promise<void> => {
     try {
@@ -89,25 +90,25 @@ const ChatPage: React.FC = () => {
 
   useEffect(() => {
     const fetchChatRooms = async () => {
-      try {
-        if (!user) return;
+      const loggedInUserID = `${user ? user.uid : null}`;
 
-        const userChatRoomsRef = collection(db, "chats");
+      try {
+        if (!loggedInUserID) return;
         const q = query(
-          userChatRoomsRef,
-          where("participants", "array-contains", user.uid)
+          collection(db, "chats"),
+          where("participants", "array-contains", loggedInUserID)
         );
         const querySnapshot = await getDocs(q);
+        const chatRoomsData: any[] = [];
 
-        const chatRoomsDataArray: any[] = [];
         querySnapshot.forEach((doc) => {
           const chatRoomData = doc.data();
-          chatRoomsDataArray.push({ id: doc.id, ...chatRoomData });
+          chatRoomsData.push({ id: doc.id, ...chatRoomData });
         });
 
-        setChatRoomsData(chatRoomsDataArray);
+        setChatRooms(chatRoomsData);
       } catch (error) {
-        console.error("Error fetching user chat rooms:", error);
+        console.error("Error fetching chat rooms:", error);
       }
     };
 
@@ -186,11 +187,12 @@ const ChatPage: React.FC = () => {
           </div>
         )}
         <div>
-          {chatRoomsData.map((chatRoom: any) => (
+          {chatRooms.map((chatRoom) => (
             <div key={chatRoom.id} className="border-b border-gray-300 py-2">
               <p className="text-lg font-semibold">{chatRoom.recipientName}</p>
+              <p>Recipient ID: {chatRoom.recipiesentId}</p>
               <Button onClick={() => handleMessage(chatRoom.recipientId)}>
-                Message
+                <Angry />
               </Button>
             </div>
           ))}
