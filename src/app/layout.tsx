@@ -20,7 +20,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={pop.className}>{children}</body>
+      <body className={`bg-[#2b4032] ${pop.className}`}>{children}</body>
     </html>
   );
 }
