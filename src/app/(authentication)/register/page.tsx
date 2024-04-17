@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { createUserWithEmailAndPassword } from "@/config";
 import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import { TabsList } from "@radix-ui/react-tabs";
+import { SendHorizontal } from "lucide-react";
 
 const RegisterPage = () => {
   const [fullName, setFullName] = useState("");
@@ -157,9 +158,10 @@ const RegisterPage = () => {
           {error && <p className="text-red-500 mb-4">{error}</p>}
           <Button
             type="submit"
-            className="w-full bg-blue-500 text-white py-3 rounded-md hover:bg-blue-600"
+            className="w-full bg-blue-500 text-white py-3 rounded-md hover:bg-blue-600 "
           >
-            Register as {accountType}
+            Register! <span>----</span>
+            <SendHorizontal />
           </Button>
         </form>
       </div>
