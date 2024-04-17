@@ -27,22 +27,23 @@ export const fetchAllUsersData = async (): Promise<UserData[]> => {
 };
 
 // Function to check the account type of a user
-export const checkAccountType = async (userId: string): Promise<string | null> => {
+export const checkAccountType = async (userId: string): Promise<{ accountType: string | null, uid: string | null }> => {
   try {
     const userRef = collection(db, "users");
     const q = query(userRef, where("uid", "==", userId));
     const querySnapshot = await getDocs(q);
 
     if (querySnapshot.empty) {
-      return null; 
+      return { accountType: null, uid: null }; 
     }
 
     const userData = querySnapshot.docs[0].data() as UserData;
-    return userData.accountType;
+    return { accountType: userData.accountType, uid: userData.uid };
   } catch (error) {
     throw error;
   }
 };
+
 
 // Function to log out the user
 export const logoutUser = async (): Promise<void> => {

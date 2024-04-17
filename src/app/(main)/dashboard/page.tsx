@@ -5,6 +5,8 @@ import { collection, getDocs, query, where } from "firebase/firestore";
 import { db, auth } from "@/config";
 import Image from "next/image";
 import { useAuthState } from "react-firebase-hooks/auth";
+import { Button } from "@/components/ui/button";
+import { CircleX } from "lucide-react";
 
 interface UserData {
   name: string;
@@ -19,6 +21,15 @@ const DashboardPage = () => {
   const [user] = useAuthState(auth);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const openModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+  };
 
   useEffect(() => {
     const fetchUserData = async () => {

@@ -1,29 +1,32 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { collection, query, where, getDocs, addDoc } from "firebase/firestore";
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  DocumentData,
+  deleteDoc,
+  doc,
+} from "firebase/firestore";
 import { db, auth } from "@/config";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useAuthState } from "react-firebase-hooks/auth";
 import dynamic from "next/dynamic";
-import { Angry } from "lucide-react";
+import { User } from "./types";
+import { BellRing, CircleUserRound, CircleX } from "lucide-react";
+import Image from "next/image";
 
 // Dynamically import ChatBox component
 const ChatBox = dynamic(() => import("./chat"));
 
-interface User {
-  uid: string;
-  name: string;
-  email: string;
-  accountType: string;
-  displayName: string;
-}
-interface UserData {
-  name: string;
-  email: string;
-  accountType: string;
-  gradeLevel: string;
+interface Notification {
+  id: string;
+  text: string;
+  senderName: string;
+  senderEmail: string;
 }
 
 const ChatPage: React.FC = () => {
@@ -33,9 +36,9 @@ const ChatPage: React.FC = () => {
   const [showChatBox, setShowChatBox] = useState<boolean>(false);
   const [user] = useAuthState(auth);
   const [recipientUserId, setRecipientUserId] = useState<string>("");
-  const [userData, setUserData] = useState<UserData | null>(null);
+  const [userData, setUserData] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [chatRooms, setChatRooms] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
 
   const handleSearch = async (): Promise<void> => {
     try {
@@ -60,7 +63,7 @@ const ChatPage: React.FC = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const loggedInUserEmail = `${user ? user.email : null}`;
+        const loggedInUserEmail = user?.email;
 
         if (loggedInUserEmail) {
           const usersCollection = collection(db, "users");
@@ -71,7 +74,7 @@ const ChatPage: React.FC = () => {
           const querySnapshot = await getDocs(q);
 
           if (!querySnapshot.empty) {
-            const userData = querySnapshot.docs[0].data() as UserData;
+            const userData = querySnapshot.docs[0].data() as User;
             setUserData(userData);
           } else {
             console.warn("No user found with the provided email");
@@ -88,33 +91,6 @@ const ChatPage: React.FC = () => {
     fetchUserData();
   }, [user]);
 
-  useEffect(() => {
-    const fetchChatRooms = async () => {
-      const loggedInUserID = `${user ? user.uid : null}`;
-
-      try {
-        if (!loggedInUserID) return;
-        const q = query(
-          collection(db, "chats"),
-          where("participants", "array-contains", loggedInUserID)
-        );
-        const querySnapshot = await getDocs(q);
-        const chatRoomsData: any[] = [];
-
-        querySnapshot.forEach((doc) => {
-          const chatRoomData = doc.data();
-          chatRoomsData.push({ id: doc.id, ...chatRoomData });
-        });
-
-        setChatRooms(chatRoomsData);
-      } catch (error) {
-        console.error("Error fetching chat rooms:", error);
-      }
-    };
-
-    fetchChatRooms();
-  }, [user]);
-
   const handleMessage = (recipientId: string): void => {
     setRecipientUserId(recipientId);
     setShowChatBox(true);
@@ -124,6 +100,60 @@ const ChatPage: React.FC = () => {
   const handleCloseModal = (): void => {
     setIsModalOpen(false);
     setSearchedUser(null);
+  };
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        fetchNotifications(user.uid);
+      } else {
+        console.log("USER NOT FOUND");
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const fetchNotifications = async (userId: string) => {
+    try {
+      const q = query(collection(db, "notifications", userId, "messages"));
+      const querySnapshot = await getDocs(q);
+
+      const fetchedNotifications: Notification[] = [];
+      querySnapshot.forEach((doc) => {
+        const data = doc.data() as DocumentData;
+        const senderName = data.senderName;
+        const senderEmail = data.senderEmail; // Fetch senderEmail
+        fetchedNotifications.push({
+          id: doc.id,
+          text: data.text,
+          senderName: senderName,
+          senderEmail: senderEmail, // Include senderEmail in the notification object
+        });
+      });
+
+      setNotifications(fetchedNotifications);
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+    }
+  };
+
+  const deleteNotification = async (id: string) => {
+    try {
+      const currentUser = auth.currentUser;
+      if (currentUser) {
+        await deleteDoc(
+          doc(db, "notifications", currentUser.uid, "messages", id)
+        );
+        setNotifications((prevNotifications) =>
+          prevNotifications.filter((notification) => notification.id !== id)
+        );
+      } else {
+        console.error("Current user not found");
+      }
+    } catch (error) {
+      console.error("Error deleting notification:", error);
+    }
   };
 
   return (
@@ -156,6 +186,7 @@ const ChatPage: React.FC = () => {
               onClose={handleCloseModal}
               recipientUserId={recipientUserId}
               recipientUserName={searchedUser.name}
+              recipientEmail={searchedUser.email}
             />
           </div>
         )}
@@ -186,17 +217,23 @@ const ChatPage: React.FC = () => {
             </div>
           </div>
         )}
-        <div>
-          {chatRooms.map((chatRoom) => (
-            <div key={chatRoom.id} className="border-b border-gray-300 py-2">
-              <p className="text-lg font-semibold">{chatRoom.recipientName}</p>
-              <p>Recipient ID: {chatRoom.recipiesentId}</p>
-              <Button onClick={() => handleMessage(chatRoom.recipientId)}>
-                <Angry />
-              </Button>
+        {notifications.map((notification) => (
+          <div
+            key={notification.id}
+            className="flex items-start w-full p-4 text-gray-700 bg-white border-b border-gray-200"
+            role="alert"
+          >
+            <div className="flex-shrink-0 w-10 h-10">
+              <CircleUserRound />
             </div>
-          ))}
-        </div>
+            <div className="flex flex-col justify-between flex-grow ml-4">
+              <div>
+                <span className="font-medium">{notification.senderName}</span>{" "}
+              </div>
+              <p className="text-sm">{notification.text}</p>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

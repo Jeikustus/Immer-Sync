@@ -93,7 +93,6 @@ const FeedbackPage: React.FC = () => {
         createdAt: serverTimestamp(),
       });
       setCommentText("");
-      // Refetch comments after adding a new one
       const q = query(
         collection(db, "job-comments"),
         where("jobId", "==", appliedJob.id)

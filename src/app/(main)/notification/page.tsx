@@ -8,10 +8,12 @@ import {
   DocumentData,
   deleteDoc,
   doc,
+  where,
 } from "firebase/firestore";
 import { db, auth } from "@/config";
 import { Button } from "@/components/ui/button";
 import { BellRing, BriefcaseBusiness, CircleX, Send } from "lucide-react";
+import { useAuthState } from "react-firebase-hooks/auth";
 
 interface Notification {
   id: string;
@@ -25,11 +27,57 @@ interface JobNotification {
   senderName: string;
 }
 
+interface UserData {
+  name: string;
+  email: string;
+  accountType: string;
+  gradeLevel?: string;
+  teacherGrade?: string;
+  organizationName?: string;
+}
+
 const NotificationPage: React.FC = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [jobNotifications, setJobNotifications] = useState<JobNotification[]>(
     []
   );
+  const [loading, setLoading] = useState<boolean>(true);
+  const [user] = useAuthState(auth);
+  const [userData, setUserData] = useState<UserData | null>(null);
+  const [currentAccountType, setCurrentAccountType] =
+    useState<string>("Loading...");
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const loggedInUserEmail = user ? user.email : null;
+
+        if (loggedInUserEmail) {
+          const usersCollection = collection(db, "users");
+          const q = query(
+            usersCollection,
+            where("email", "==", loggedInUserEmail)
+          );
+          const querySnapshot = await getDocs(q);
+
+          if (!querySnapshot.empty) {
+            const userData = querySnapshot.docs[0].data() as UserData;
+            console.log("Fetched user data:", userData);
+            setUserData(userData);
+          } else {
+            console.warn("No user found with the provided email");
+          }
+        }
+
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, [user]);
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
@@ -43,6 +91,13 @@ const NotificationPage: React.FC = () => {
 
     return () => unsubscribe();
   }, []);
+
+  useEffect(() => {
+    const currentAccountType = loading
+      ? "Loading..."
+      : userData?.accountType || "No Account Type";
+    setCurrentAccountType(currentAccountType);
+  }, [userData, loading]);
 
   const fetchNotifications = async (userId: string) => {
     try {
@@ -133,34 +188,36 @@ const NotificationPage: React.FC = () => {
             </button>
           </div>
         ))}
-        {jobNotifications.map((notification) => (
-          <div
-            key={notification.id}
-            className="flex items-center w-full max-w-xs p-4 text-gray-500 bg-white rounded-lg shadow"
-            role="alert"
-          >
-            <div className="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-green-500 bg-blue-100 rounded-lg">
-              <BriefcaseBusiness />
-            </div>
-            <div className="ms-3">
-              <div className="text-md font-bold">{notification.text}</div>
-              <div className="text-sm">
-                <em>{notification.senderName}</em>
-              </div>
-            </div>
-            <button
-              onClick={() => {
-                window.location.href = "/find-job";
-              }}
-              type="button"
-              className="ms-auto -mx-1.5 -my-1.5 bg-white text-blue-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex items-center justify-center h-8
-              w-8"
-              aria-label="Close"
+        {currentAccountType !== "Student" &&
+          currentAccountType !== "Organization" &&
+          jobNotifications.map((notification) => (
+            <div
+              key={notification.id}
+              className="flex items-center w-full max-w-xs p-4 text-gray-500 bg-white rounded-lg shadow"
+              role="alert"
             >
-              <Send />
-            </button>
-          </div>
-        ))}
+              <div className="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-green-500 bg-blue-100 rounded-lg">
+                <BriefcaseBusiness />
+              </div>
+              <div className="ms-3">
+                <div className="text-md font-bold">{notification.text}</div>
+                <div className="text-sm">
+                  <em>{notification.senderName}</em>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  window.location.href = "/find-job";
+                }}
+                type="button"
+                className="ms-auto -mx-1.5 -my-1.5 bg-white text-blue-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex items-center justify-center h-8
+              w-8"
+                aria-label="Close"
+              >
+                <Send />
+              </button>
+            </div>
+          ))}
       </div>
     </div>
   );

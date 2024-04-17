@@ -14,7 +14,7 @@ import {
   getDoc,
   doc,
 } from "firebase/firestore";
-import { db, storage } from "@/config";
+import { auth, db, storage } from "@/config";
 import {
   CircleUserRound,
   CircleX,
@@ -24,11 +24,13 @@ import {
   FileCheck2,
 } from "lucide-react";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import { useAuthState } from "react-firebase-hooks/auth";
 
 interface Message {
   text: string;
   senderId: string;
   senderName: string;
+  senderEmail: string;
   createdAt: Date;
   attachmentURL?: string;
 }
@@ -40,6 +42,7 @@ const ChatBox: React.FC<{
   onClose: () => void;
   recipientUserId: string;
   recipientUserName: string;
+  recipientEmail: string;
 }> = ({
   currentUserName,
   currentUserId,
@@ -47,11 +50,13 @@ const ChatBox: React.FC<{
   onClose,
   recipientUserId,
   recipientUserName,
+  recipientEmail,
 }) => {
   const [chatRoomId, setChatRoomId] = useState<string | null>(null);
   const [chatHistory, setChatHistory] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState<string>("");
   const [attachment, setAttachment] = useState<File | null>(null);
+  const [user] = useAuthState(auth);
 
   useEffect(() => {
     const fetchChatHistory = async () => {
@@ -122,22 +127,20 @@ const ChatBox: React.FC<{
 
         uploadTask.on(
           "state_changed",
-          (snapshot) => {
-            // Handle progress
-          },
+          (snapshot) => {},
           (error) => {
-            // Handle errors
             console.error("Error uploading file:", error);
           },
           async () => {
-            // Upload completed successfully, now get the download URL
             const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
 
-            // Add message to the chat messages collection
             const chatRef = collection(db, "chats", chatRoomId, "messages");
             await addDoc(chatRef, {
               senderId: currentUserId,
               senderName: currentUserName,
+              senderEmail: `${user ? user.email : null}`,
+              senderUID: currentUserId,
+              recipientEmail: recipientEmail,
               recipientUserName: recipientUserName,
               createdAt: new Date(),
               attachmentURL: downloadURL,
@@ -150,7 +153,9 @@ const ChatBox: React.FC<{
               "messages"
             );
             await addDoc(notificationRef, {
+              senderEmail: `${user ? user.email : null}`,
               senderName: currentUserName,
+              senderUID: currentUserId,
               createdAt: new Date(),
               attachmentURL: downloadURL,
             });
@@ -161,12 +166,14 @@ const ChatBox: React.FC<{
       }
 
       if (newMessage.trim() !== "") {
-        // Add text-only message to the chat messages collection
         const chatRef = collection(db, "chats", chatRoomId, "messages");
         await addDoc(chatRef, {
           text: newMessage,
           senderId: currentUserId,
           senderName: currentUserName,
+          senderEmail: `${user ? user.email : null}`,
+          senderUID: currentUserId,
+          recipientEmail: recipientEmail,
           recipientUserName: recipientUserName,
           createdAt: new Date(),
         });
@@ -180,7 +187,9 @@ const ChatBox: React.FC<{
         await addDoc(notificationRef, {
           text: newMessage,
           senderName: currentUserName,
+          senderUID: currentUserId,
           createdAt: new Date(),
+          senderEmail: `${user ? user.email : null}`,
         });
 
         setNewMessage("");

@@ -29,15 +29,15 @@ const FindJobPage: React.FC = () => {
   const [user] = useAuthState(auth);
   const [searchTerm, setSearchTerm] = useState<string>("");
 
-  const [categoryFilter, setCategoryFilter] = useState<string | null>(null); // State to store category filter
+  const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchJobs = async () => {
       try {
         const jobCollection = collection(db, "jobs");
-        const q = categoryFilter // Check if category filter is applied
+        const q = categoryFilter
           ? query(jobCollection, where("category", "==", categoryFilter))
-          : jobCollection; // If not, get all jobs
+          : jobCollection;
         const querySnapshot = await getDocs(q);
         const jobsData = querySnapshot.docs.map((doc) => ({
           id: doc.id,
@@ -50,7 +50,7 @@ const FindJobPage: React.FC = () => {
     };
 
     fetchJobs();
-  }, [categoryFilter]); // Re-fetch jobs when category filter changes
+  }, [categoryFilter]);
 
   const handleApply = (jobTitle: string) => {
     window.location.href = `/apply-job?jobTitle=${encodeURIComponent(
@@ -117,7 +117,7 @@ const FindJobPage: React.FC = () => {
           }}
         />
         <Button
-          onClick={() => handleSearch(searchTerm)} // Pass the searchTerm to handleSearch
+          onClick={() => handleSearch(searchTerm)}
           className="bg-blue-500 hover:bg-blue-600 text-white"
         >
           Search
@@ -172,6 +172,7 @@ const FindJobPage: React.FC = () => {
             onClose={handleCloseModal}
             recipientUserId={authorUID}
             recipientUserName={"Author"}
+            recipientEmail={""}
           />
         </div>
       )}

@@ -201,9 +201,6 @@ export const NavigationBar = () => {
             </div>
           </div>
           <div className="flex flex-row items-center justify-center space-y-1">
-            <Button variant={"ghost"} size={"sm"}>
-              <Settings />
-            </Button>
             <Button variant={"ghost"} size={"sm"} onClick={handleLogout}>
               <LogOut />
             </Button>

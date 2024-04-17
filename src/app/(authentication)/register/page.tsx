@@ -25,6 +25,7 @@ const RegisterPage = () => {
       setError("Passwords do not match");
       return;
     }
+    // ^ COnfirmation if the password is equal to confirmPassword
 
     let additionalInfo = "";
 
@@ -35,13 +36,14 @@ const RegisterPage = () => {
     } else if (accountType === "organization") {
       additionalInfo = organizationName;
     }
+    // e check if unsa imong accountType teacher student or organization
 
     try {
       await createUserWithEmailAndPassword(
         email,
         password,
         fullName,
-        additionalInfo,
+        additionalInfo, // organization name or sutdetGrade or teacherGrade
         accountType
       );
 

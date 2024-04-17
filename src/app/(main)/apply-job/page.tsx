@@ -1,4 +1,5 @@
 "use client";
+
 import { useState, useEffect } from "react";
 import { collection, addDoc } from "firebase/firestore";
 import { db, auth } from "@/config";
@@ -6,7 +7,6 @@ import { useAuthState } from "react-firebase-hooks/auth";
 
 interface JobApplication {
   jobTitle: string;
-
   teacherEmail: string;
   studentEmails: string[];
 }
@@ -33,7 +33,6 @@ const ApplyJobPage: React.FC = () => {
     try {
       const jobApplication: JobApplication = {
         jobTitle,
-
         teacherEmail,
         studentEmails,
       };
@@ -43,7 +42,7 @@ const ApplyJobPage: React.FC = () => {
       );
       console.log("Document written with ID: ", docRef.id);
 
-      setTeacherEmail("");
+      setTeacherEmail(`${user ? user.email : null}`);
       setStudentEmails([]);
       setErrorMessage("");
     } catch (error) {
