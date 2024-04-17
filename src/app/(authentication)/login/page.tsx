@@ -17,21 +17,25 @@ const LoginPage = () => {
 
       const currentUser = auth.currentUser;
       if (currentUser) {
-        const accountType = await checkAccountType(currentUser.uid);
+        const { accountType } = await checkAccountType(currentUser.uid);
 
-        switch (accountType) {
-          case "Admin":
-            window.location.href = "/admin";
-            break;
-          case "pending":
-            window.location.href = "/pending";
-            break;
-          case "declined":
-            window.location.href = "/declined-account";
-            break;
-          default:
-            window.location.href = "/dashboard";
-            break;
+        if (accountType !== null) {
+          switch (accountType) {
+            case "Admin":
+              window.location.href = "/admin";
+              break;
+            case "pending":
+              window.location.href = "/pending";
+              break;
+            case "declined":
+              window.location.href = "/declined-account";
+              break;
+            default:
+              window.location.href = "/dashboard";
+              break;
+          }
+        } else {
+          console.error("Account type is null");
         }
       }
     } catch (error) {
