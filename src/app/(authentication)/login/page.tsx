@@ -18,7 +18,7 @@ const LoginPage = () => {
       const currentUser = auth.currentUser;
       if (currentUser) {
         const { accountType } = await checkAccountType(currentUser.uid);
-
+        // check
         if (accountType !== null) {
           switch (accountType) {
             case "Admin":
